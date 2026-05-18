@@ -1,0 +1,20 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "flask-secret-key"
+description = "Flask or session SECRET_KEY hardcoded"
+regex = '''(?i)(secret_key|session_secret)\s*[:=]\s*['\"]([^'\"]{4,})['\"]'''
+tags = ["flask", "secret"]
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT secret hardcoded"
+regex = '''(?i)(jwt_secret|jwt_key)\s*[:=]\s*['\"]([^'\"]{4,})['\"]'''
+tags = ["jwt", "secret"]
+
+[[rules]]
+id = "db-password"
+description = "Database password hardcoded"
+regex = '''(?i)(db_password|postgres_password)\s*[:=]\s*['\"]([^'\"]{4,})['\"]'''
+tags = ["database", "secret"]
