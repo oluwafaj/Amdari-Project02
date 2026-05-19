@@ -116,3 +116,51 @@ jobs:
           scan-ref: infra/kubernetes
           severity: CRITICAL,HIGH
           exit-code: 1
+
+
+security-gate:
+    name: Stage 5 - Security Gate
+    runs-on: ubuntu-latest
+    needs: [secret-scan, sast-scan, image-scan, iac-scan]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Gitleaks report
+        uses: actions/download-artifact@v4
+        with:
+          name: gitleaks-report
+        continue-on-error: true
+
+      - name: Run Security Gate
+        run: |
+          chmod +x pipeline/scripts/security-gate.sh
+          bash pipeline/scripts/security-gate.sh
+
+      - name: Post PR Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔐 Security Gate Summary
+            
+            ### ❌ DevSecOps-Owned Findings (Blocking)
+            | Scanner | Status | Action |
+            |---------|--------|--------|
+            | Gitleaks | ❌ Secrets found | Rotate credentials immediately |
+            | Trivy | ❌ CVEs found | Upgrade base image |
+            | Checkov | ❌ IaC misconfigs | Fix Terraform modules |
+            
+            ### ⚠️ AppSec-Owned Findings (Non-Blocking)
+            | Scanner | Status | Owner |
+            |---------|--------|-------|
+            | SonarQube | ⚠️ Issues found | AppSec Team |
+            
+            > Merge is blocked until DevSecOps findings are resolved.
+            > AppSec findings have been routed to the security team.`
+            })
