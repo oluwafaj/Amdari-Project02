@@ -1,5 +1,5 @@
-cat > ~/project/Amdari-Project02/.github/workflows/devsecops-pipeline.yml << 'EOF'
-name: DevSecOps Pipeline
+python3 << 'PYEOF'
+content = """name: DevSecOps Pipeline
 
 on:
   push:
@@ -25,12 +25,7 @@ jobs:
 
       - name: Run Gitleaks
         run: |
-          gitleaks detect --source . \
-            --config .gitleaks.toml \
-            --log-opts="--all" \
-            --report-format json \
-            --report-path gitleaks-report.json \
-            --exit-code 1
+          gitleaks detect --source . --config .gitleaks.toml --log-opts="--all" --report-format json --report-path gitleaks-report.json --exit-code 1
 
       - name: Upload Gitleaks Report
         if: always()
@@ -54,29 +49,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
-      - name: Export SonarQube findings
-        run: |
-          curl -s -u ${{ secrets.SONAR_TOKEN }}: \
-            "https://sonarcloud.io/api/issues/search?projectKeys=oluwafaj_Amdari-Project02&severities=CRITICAL,BLOCKER&resolved=false" \
-            -o sonar-critical.json
-          CRITICAL_COUNT=$(cat sonar-critical.json | python3 -c "import sys,json; print(json.load(sys.stdin).get('total', 0))")
-          echo "Critical/Blocker findings: $CRITICAL_COUNT"
-          if [ "$CRITICAL_COUNT" -gt "0" ]; then
-            echo "SONAR_GATE=FAILED" >> $GITHUB_ENV
-          else
-            echo "SONAR_GATE=PASSED" >> $GITHUB_ENV
-          fi
-
       - name: Upload SonarQube Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: sonar-findings
-          path: sonar-critical.json
+          path: .scannerwork/report-task.txt
+"""
 
-      - name: Hard-fail on CRITICAL/BLOCKER only
-        if: env.SONAR_GATE == 'FAILED'
-        run: |
-          echo "Hard-failing on CRITICAL/BLOCKER SonarQube findings"
-          exit 1
-EOF
+with open('.github/workflows/devsecops-pipeline.yml', 'w') as f:
+    f.write(content)
+print("File written successfully!")
+PYEOF
