@@ -48,7 +48,7 @@ jobs:
         with:
           name: sonar-findings
           path: .scannerwork/report-task.txt
-image-scan:
+  image-scan:
     name: Stage 3 - Trivy Image Scan
     runs-on: ubuntu-latest
     steps:
