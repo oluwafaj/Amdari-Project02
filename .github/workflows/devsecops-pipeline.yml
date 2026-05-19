@@ -87,3 +87,32 @@ jobs:
           format: table
           exit-code: 1
           severity: CRITICAL,HIGH
+
+
+  iac-scan:
+    name: Stage 4 - Checkov IaC Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov on Terraform
+        run: |
+          checkov -d infra/terraform \
+            --severity high \
+            --compact \
+            --output cli \
+            --soft-fail-on MEDIUM \
+            --hard-fail-on HIGH,CRITICAL
+        continue-on-error: false
+
+      - name: Run Trivy on K8s manifests
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: infra/kubernetes
+          severity: CRITICAL,HIGH
+          exit-code: 1
