@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: auth-db
   namespace: secureflow
+  labels:
+    app: auth-db
+    team: secureflow
 spec:
   replicas: 1
   selector:
@@ -12,10 +15,16 @@ spec:
     metadata:
       labels:
         svc: auth-db
+        app: auth-db
+        team: secureflow
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
       containers:
         - name: postgres
-          image: postgres:14    # CK-03 — no digest pinning.
+          image: postgres:14
           env:
             - name: POSTGRES_DB
               value: authdb
@@ -28,6 +37,22 @@ spec:
                   key: AUTH_DB_PASSWORD
           ports:
             - containerPort: 5432
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ---
 apiVersion: v1
 kind: Service
@@ -46,6 +71,9 @@ kind: Deployment
 metadata:
   name: transaction-db
   namespace: secureflow
+  labels:
+    app: transaction-db
+    team: secureflow
 spec:
   replicas: 1
   selector:
@@ -55,7 +83,13 @@ spec:
     metadata:
       labels:
         svc: transaction-db
+        app: transaction-db
+        team: secureflow
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
       containers:
         - name: postgres
           image: postgres:14
@@ -71,6 +105,22 @@ spec:
                   key: TX_DB_PASSWORD
           ports:
             - containerPort: 5432
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
 ---
 apiVersion: v1
 kind: Service

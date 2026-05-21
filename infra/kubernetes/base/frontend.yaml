@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: secureflow
+  labels:
+    app: frontend
+    team: secureflow
 spec:
   replicas: 1
   selector:
@@ -12,20 +15,37 @@ spec:
     metadata:
       labels:
         svc: frontend
+        app: frontend
+        team: secureflow
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: frontend
-          image: secureflow/frontend:latest   # CK-06
+          image: secureflow/frontend:latest
           ports:
             - containerPort: 5000
           envFrom:
             - configMapRef:
                 name: secureflow-config
           securityContext:
-            privileged: true                # CK-04
-            allowPrivilegeEscalation: true  # CK-04
-            runAsUser: 0                    # CK-02
-          # CK-05 — no resources.
+            privileged: false
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
 ---
 apiVersion: v1
 kind: Service

@@ -28,6 +28,10 @@ spec:
           export DB_USER="{{ .Data.data.db_user }}"
           {{- end }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       serviceAccountName: transaction-service
       containers:
         - name: transaction-service
@@ -46,3 +50,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

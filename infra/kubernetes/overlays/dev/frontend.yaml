@@ -25,6 +25,10 @@ spec:
           export SESSION_SECRET="{{ .Data.data.session_secret }}"
           {{- end }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       serviceAccountName: frontend
       containers:
         - name: frontend
@@ -43,3 +47,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

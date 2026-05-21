@@ -29,6 +29,10 @@ spec:
           export JWT_SECRET="{{ .Data.data.jwt_secret }}"
           {{- end }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       serviceAccountName: auth-service
       containers:
         - name: auth-service
@@ -47,3 +51,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
