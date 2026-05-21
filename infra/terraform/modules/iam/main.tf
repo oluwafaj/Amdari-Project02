@@ -1,9 +1,4 @@
-variable "project" { type = string }
-
-# IV-08 — EKS node role is given AdministratorAccess.
-# Remediation: scope to specific managed policies (AmazonEKSWorkerNodePolicy,
-# AmazonEKS_CNI_Policy, AmazonEC2ContainerRegistryReadOnly) and use IRSA for
-# application pods that need AWS access.
+# IV-08 remediated — replaced AdministratorAccess with least-privilege policies
 
 resource "aws_iam_role" "eks_node" {
   name = "${var.project}-eks-node-role"
@@ -20,12 +15,22 @@ resource "aws_iam_role" "eks_node" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "admin_access" {
+# Replaced AdministratorAccess with minimum required EKS node policies
+resource "aws_iam_role_policy_attachment" "eks_worker_node" {
   role       = aws_iam_role.eks_node.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess" # IV-08
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-# A second role used by the app pods — also over-privileged.
+resource "aws_iam_role_policy_attachment" "eks_cni" {
+  role       = aws_iam_role.eks_node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecr_read" {
+  role       = aws_iam_role.eks_node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
 resource "aws_iam_role" "app_role" {
   name = "${var.project}-app-role"
 
@@ -41,17 +46,24 @@ resource "aws_iam_role" "app_role" {
   })
 }
 
+# Replaced wildcard with scoped least-privilege policy
 resource "aws_iam_role_policy" "app_inline" {
   name = "${var.project}-app-inline"
   role = aws_iam_role.app_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = "*"     # IV-08 — wildcard action.
-      Resource = "*"     # IV-08 — wildcard resource.
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = "arn:aws:secretsmanager:*:*:secret:secureflow/*"
+      }
+    ]
   })
 }
 
