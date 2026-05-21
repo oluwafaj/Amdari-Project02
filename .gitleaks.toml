@@ -18,3 +18,11 @@ id = "db-password"
 description = "Database password hardcoded"
 regex = '''(?i)(db_password|postgres_password)\s*[:=]\s*['\"]([^'\"]{4,})['\"]'''
 tags = ["database", "secret"]
+
+[allowlist]
+description = "Allowlist for intentionally documented vulnerabilities"
+paths = [
+  "VULNERABILITIES.md",
+  ".env.example"
+]
+commits = []
