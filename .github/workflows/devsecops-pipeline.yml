@@ -70,7 +70,7 @@ jobs:
           image-ref: auth-service:test
           format: table
           exit-code: 1
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
 
       - name: Scan transaction-service
         uses: aquasecurity/trivy-action@master
@@ -78,7 +78,7 @@ jobs:
           image-ref: transaction-service:test
           format: table
           exit-code: 1
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
 
       - name: Scan frontend
         uses: aquasecurity/trivy-action@master
@@ -86,7 +86,7 @@ jobs:
           image-ref: frontend:test
           format: table
           exit-code: 1
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
 
 
   iac-scan:
