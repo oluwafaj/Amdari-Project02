@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: secureflow
+  labels:
+    app: frontend
+    team: secureflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        team: secureflow
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "frontend"
+        vault.hashicorp.com/agent-inject-secret-config: "secureflow/data/frontend"
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{- with secret "secureflow/data/frontend" -}}
+          export SESSION_SECRET="{{ .Data.data.session_secret }}"
+          {{- end }}
+    spec:
+      serviceAccountName: frontend
+      containers:
+        - name: frontend
+          image: amdari-project02-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false

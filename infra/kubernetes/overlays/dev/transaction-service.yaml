@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-service
+  namespace: secureflow
+  labels:
+    app: transaction-service
+    team: secureflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-service
+  template:
+    metadata:
+      labels:
+        app: transaction-service
+        team: secureflow
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "transaction-service"
+        vault.hashicorp.com/agent-inject-secret-config: "secureflow/data/transaction-service"
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{- with secret "secureflow/data/transaction-service" -}}
+          export DB_HOST="{{ .Data.data.db_host }}"
+          export DB_NAME="{{ .Data.data.db_name }}"
+          export DB_PASSWORD="{{ .Data.data.db_password }}"
+          export DB_USER="{{ .Data.data.db_user }}"
+          {{- end }}
+    spec:
+      serviceAccountName: transaction-service
+      containers:
+        - name: transaction-service
+          image: amdari-project02-transaction-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5002
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
