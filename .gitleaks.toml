@@ -20,9 +20,16 @@ regex = '''(?i)(db_password|postgres_password)\s*[:=]\s*['\"]([^'\"]{4,})['\"]''
 tags = ["database", "secret"]
 
 [allowlist]
-description = "Allowlist for intentionally documented vulnerabilities"
+description = "Allowlist for Vault templates, documented vulnerabilities, and upstream baseline commit"
 paths = [
   "VULNERABILITIES.md",
-  ".env.example"
+  ".env.example",
+  "infra/kubernetes/overlays/dev/auth-service.yaml",
+  "infra/kubernetes/overlays/dev/transaction-service.yaml",
+  "infra/kubernetes/overlays/dev/frontend.yaml",
+  "infra/terraform/main.tf",
+  "infra/kubernetes/base/configmap.yaml"
 ]
-commits = []
+commits = [
+  "67266955dcf23e18c7753647ce7ec9c1bacf0459"
+]
